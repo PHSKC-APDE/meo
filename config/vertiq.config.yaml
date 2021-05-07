@@ -1,0 +1,13 @@
+from_server: meo_vertiq
+from_server_address: cme2.database.windows.net
+from_db: KingProd
+from_schema: dbo
+to_server: hhsaw_dev
+to_server_address: kcitazrhpasqldev20.database.windows.net
+to_db: hhs_analytics_workspace
+to_schema: meo
+table_prefix: vertiq_
+qa_table_copy: zCopyLog
+path_tmp: C:/temp/meo
+field_term: \t
+row_term: \n

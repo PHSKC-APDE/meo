@@ -1,0 +1,12 @@
+DecedentInformation:
+  CaseNum: NVARCHAR(255)
+  SSN: NVARCHAR(255)
+  BirthDate: DATE
+  DecedentAddress: NVARCHAR(255)
+  Ethnicity: NVARCHAR(255)
+  MaritalStatus: NVARCHAR(255)
+  PropertyDescription: NVARCHAR(MAX)
+  ClothingDescription: NVARCHAR(MAX)
+  Race: NVARCHAR(MAX)
+  OccupationTrade: NVARCHAR(255)
+  KindOfBusinessIndustry: NVARCHAR(255)
