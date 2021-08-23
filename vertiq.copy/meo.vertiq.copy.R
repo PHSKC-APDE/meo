@@ -18,19 +18,19 @@ msg <- c("<style> table, th, td { border: 1px solid black; padding: 0 10px; } </
 
 ### BEGIN MAIN SCRIPT
 assign("last.warning", NULL, envir = baseenv())
-config <- yaml::read_yaml("C:/Users/jwhitehurst/OneDrive - King County/R/MEO/vertiq_copy/config/vertiq.config.yaml")
-tables <- yaml::read_yaml("C:/Users/jwhitehurst/OneDrive - King County/R/MEO/vertiq_copy/config/vertiq.tables.yaml")
-views <- yaml::read_yaml("C:/Users/jwhitehurst/OneDrive - King County/R/MEO/vertiq_copy/config/vertiq.views.yaml")
+config <- yaml::read_yaml("C:/Users/jwhitehurst/OneDrive - King County/GitHub/meo/config/vertiq.config.yaml")
+tables <- yaml::read_yaml("C:/Users/jwhitehurst/OneDrive - King County/GitHub/meo/config/vertiq.tables.yaml")
+views <- yaml::read_yaml("C:/Users/jwhitehurst/OneDrive - King County/GitHub/meo/config/vertiq.views.yaml")
 tables <- c(tables, views)
 
 # VertiQ Connection
 connV <- DBI::dbConnect(odbc::odbc(),
-                        driver = "ODBC Driver 17 for SQL Server",
-                        server = paste0("tcp:", config$from_server_address),
-                        database = config$from_db,
-                        uid = keyring::key_list(config$from_server)[["username"]],
-                        pwd = keyring::key_get(config$from_server, keyring::key_list(config$from_server)[["username"]]),
-                        Encrypt = "yes")
+                       driver = "ODBC Driver 17 for SQL Server",
+                       server = paste0("tcp:", config$from_server_address),
+                       database = config$from_db,
+                       uid = keyring::key_list(config$from_server)[["username"]],
+                       pwd = keyring::key_get(config$from_server, keyring::key_list(config$from_server)[["username"]]),
+                       Encrypt = "yes")
 # Azure Connection
 connA<- DBI::dbConnect(odbc::odbc(),
                        driver = "ODBC Driver 17 for SQL Server",
@@ -67,8 +67,8 @@ for (i in 1:length(tables)) {
   select_vars <- tablevars$vars
   select_vars <- select_vars[order(unlist(select_vars), decreasing = F)]
   select_query <- "SELECT "
-  
-  ### add extra processing to the SELECT query based on field type
+ 
+   ### add extra processing to the SELECT query based on field type
   for (v in 1:length(select_vars)) {
     ### remove tabs and new-lines from text fields and replace with semi-colon
     if (select_vars[v] == "NVARCHAR(MAX)" || select_vars[v] == "NVARCHAR(255)") {
@@ -96,7 +96,7 @@ for (i in 1:length(tables)) {
   
   data <- DBI::dbGetQuery(connV, select_query)
   data <- data[names(tablevars$vars)]
-  
+
   ### Create new table
   d_stop <- as.integer(nrow(data) / inc)
   if (d_stop * inc < nrow(data)) { d_stop <- d_stop + 1 }
@@ -151,6 +151,89 @@ DECLARE @ssql nvarchar(max) = 'INSERT INTO {`config$to_schema`}.vertiq_vDecedent
 exec (@ssql);
 
 DROP TABLE #Temp1;", .con = connA))
+
+DBI::dbExecute(connA,
+               glue::glue_sql("
+DROP TABLE IF EXISTS {`config$to_schema`}.vertiq_vCDIMMS;
+
+SELECT
+C.Id AS 'CaseId'
+,C.CaseNum AS 'CaseNum'
+,C.FuneralHome AS 'FuneralHome'
+,IM.Description AS 'MannerOfDeath'
+,ISM.Description AS 'SubMannerOfDeath'
+,NDI.CompleteName AS 'Investigator'
+,IPDLY.Description AS 'PregnantDuringLastYear'
+,C.EdrsId AS 'DeathRecord_ID'
+,IBTK.Description AS 'BodyToKCMEO'
+,D.DeathDate AS 'DeathDate'
+,D.DeathTime AS 'DeathTime'
+,NDIA.FirstName AS 'FirstName'
+,NDIA.LastName AS 'LastName'
+,D.BirthDate AS 'BirthDate'
+,D.AgeYears AS 'AgeYears'
+,D.AgeMonths AS 'AgeMonths'
+,D.AgeDays AS 'AgeDays'
+,D.AgeHours AS 'AgeHours'
+,D.KindOfBusinessIndustry AS 'KindOfBusinessIndustry'
+,D.SSN AS 'SSN'
+,IG.Description AS 'Gender'
+,IE.Description AS 'Ethnicity'
+,DR.*
+,A.Addr AS 'Address'
+,A.City AS 'City'
+,A.ZipCode AS 'ZipCode'
+,A.County AS 'County'
+,N.Synopsis AS 'Synopsis'
+,N.NarrativeDet AS 'NarrativeDet'
+,N.NarrSceneDescription AS 'NarrSceneDescription'
+,IET.Description AS 'ExamType'
+,P.ExamDate AS 'ExamDate'
+,NDP.CompleteName AS 'Pathologist'
+,P.InfectiousDiseaseId AS 'InfectiousDisease'
+,DC.HowInjury AS 'HowInjury'
+,DC.PreliminaryCauseofDeath AS 'PreliminaryCauseofDeath'
+,DC.OtherCause AS 'OtherCause'
+,ICH.Description AS 'CauseOfHold'
+,DC.CauseHoldOther AS 'CauseHoldOther'
+,DC.DrugRelated AS 'DrugRelated'
+,COD.CauseA AS 'DeathCauseA'
+,COD.CauseB AS 'DeathCauseB'
+,COD.CauseC AS 'DeathCauseC'
+,COD.CauseD AS 'DeathCauseD'
+,DL.ReportedDate AS 'ReportedDate'
+,ORBO.nme AS 'RptdByOrg'
+,NDR.CompleteName AS 'RptdByName'
+,IDPT.Description AS 'DeathPlaceType'
+,ODPO.nme AS 'DeathPlaceOrganization'
+,DL.DeathPlace AS 'DeathPlace'
+INTO {`config$to_schema`}.vertiq_vCDIMMS
+FROM meo.vertiq_Cases C
+LEFT JOIN meo.vertiq_NamesData NDIA ON C.IdentificationAttemptId = NDIA.Id
+LEFT JOIN meo.vertiq_NamesData NDI ON C.InvestigatorId = NDI.Id
+LEFT JOIN meo.vertiq_Items IM ON C.MannerOfDeathId = IM.Id
+LEFT JOIN meo.vertiq_Items ISM ON C.SubMannerOfDeathId = ISM.Id
+LEFT JOIN meo.vertiq_Items IPDLY ON C.PregnantDuringLastYearId = IPDLY.Id
+LEFT JOIN meo.vertiq_Items IBTK ON C.BodyToKCMEOId = IBTK.Id
+LEFT JOIN meo.vertiq_Decedents D ON DecedentId = D.Id
+LEFT JOIN meo.vertiq_Items IG ON D.GenderId = IG.Id
+LEFT JOIN meo.vertiq_Items IE ON D.EthnicityId = IE.Id
+LEFT JOIN meo.vertiq_vDecedents_Race DR ON D.Id = DR.DecedentId
+LEFT JOIN meo.vertiq_Addresses A ON D.AddressId = A.Id
+LEFT JOIN meo.vertiq_Narratives N ON C.NarrativeId = N.Id
+LEFT JOIN meo.vertiq_Autopsies P ON C.AutopsyId = P.Id
+LEFT JOIN meo.vertiq_Items IET ON P.ExamTypeId = IET.Id
+LEFT JOIN meo.vertiq_NamesData NDP ON P.PathologistId = NDP.Id
+LEFT JOIN meo.vertiq_Items IID ON P.InfectiousDiseaseId = IID.Id
+LEFT JOIN meo.vertiq_DeathCertificates DC ON C.DeathCertificateId = DC.Id
+LEFT JOIN meo.vertiq_Items ICH ON DC.CauseOfHoldId = ICH.Id
+LEFT JOIN meo.vertiq_vDeathCertificateCODs COD ON DC.Id = COD.DeathCertificateID
+LEFT JOIN meo.vertiq_DeathLocations DL ON C.DeathLocationId = DL.Id
+LEFT JOIN meo.vertiq_Organizations ORBO ON DL.RptdByOrgId = ORBO.Id
+LEFT JOIN meo.vertiq_NamesData NDR ON DL.RptdByNameId = NDR.Id
+LEFT JOIN meo.vertiq_Items IDPT ON DL.DeathPlaceTypeId = IDPT.Id
+LEFT JOIN meo.vertiq_Organizations ODPO ON DL.DeathPlaceOrganizationId = ODPO.Id;
+", .con = connA))
 
 if(all(qa$difference == 0) == FALSE) {
   msg <- c(msg, 

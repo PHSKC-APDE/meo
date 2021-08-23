@@ -16,9 +16,9 @@ suppressWarnings(library(tidyverse)) # Manipulate data
 
 ### BEGIN MAIN SCRIPT
 assign("last.warning", NULL, envir = baseenv())
-config <- yaml::read_yaml("C:/Users/jwhitehurst/OneDrive - King County/R/MEO/vertiq_copy/config/vertiq.config.yaml")
-tables <- yaml::read_yaml("C:/Users/jwhitehurst/OneDrive - King County/R/MEO/vertiq_copy/config/vertiq.tables.original.yaml")
-views <- yaml::read_yaml("C:/Users/jwhitehurst/OneDrive - King County/R/MEO/vertiq_copy/config/vertiq.views.original.yaml")
+config <- yaml::read_yaml("C:/Users/jwhitehurst/OneDrive - King County/GitHub/meo/config/vertiq.config.yaml")
+tables <- yaml::read_yaml("C:/Users/jwhitehurst/OneDrive - King County/GitHub/meo/config/vertiq.tables.yaml")
+views <- yaml::read_yaml("C:/Users/jwhitehurst/OneDrive - King County/GitHub/meo/config/vertiq.views.yaml")
 tables <- c(tables, views)
 
 # VertiQ Connection
@@ -31,6 +31,7 @@ connV <- DBI::dbConnect(odbc::odbc(),
                         Encrypt = "yes")
 
 qa <- data.frame(matrix(ncol = 4, nrow = 0))
+
 for (t in 1:length(tables)) {
   tablevars <- tables[t]
   names(tablevars) <- c("vars")

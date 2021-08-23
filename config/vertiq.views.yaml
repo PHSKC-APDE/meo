@@ -1,3 +1,35 @@
+DecedentInfoNoKCoDIncident:
+  id: INTEGER
+  CaseNum: NVARCHAR(255)
+  FirstName: NVARCHAR(255)
+  MiddleName: NVARCHAR(255)
+  LastName: NVARCHAR(255)
+  BirthDate: DATE
+  Age(years): INTEGER
+  Race: NVARCHAR(4000)
+  DeathDate: DATE
+  ExamDate: DATE
+  IncidentDate: DATE
+  IncidentAddress: NVARCHAR(255)
+  IncidentCity: NVARCHAR(255)
+  IncidentZip: NVARCHAR(255)
+  IncidentPlaceType: NVARCHAR(255)
+  NarrativeSynopsis: NVARCHAR(MAX)
+  Narrative: NVARCHAR(MAX)
+  PoliceOrg: NVARCHAR(255)
+  PoliceRefNum: NVARCHAR(255)
+  NOKName: NVARCHAR(900)
+  NOKRel: NVARCHAR(255)
+  NOKPhone: NVARCHAR(255)
+  NOKCellPhone: NVARCHAR(255)
+  NOKWorkPhone: NVARCHAR(255)
+  CauseA: NVARCHAR(255)
+  CauseB: NVARCHAR(255)
+  CauseC: NVARCHAR(255)
+  CauseD: NVARCHAR(255)
+  OtherCause: NVARCHAR(255)
+  MannerOfDeath: NVARCHAR(255)
+  SubMannerOfDeath: NVARCHAR(255)
 DecedentInformation:
   CaseNum: NVARCHAR(255)
   SSN: NVARCHAR(255)
