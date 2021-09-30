@@ -45,13 +45,13 @@ DecedentInformation:
 DecedentContacts:
   CaseNum: NVARCHAR(255)
   Id: INTEGER
-  ContactName: NVARCHAR(900)
+  ContactName: NVARCHAR(MAX)
   NextOfKin: NVARCHAR(255)
   Relationship: NVARCHAR(255)
   ContactPhone: NVARCHAR(255)
   ContactCellPhone: NVARCHAR(255)
   ContactWorkPhone: NVARCHAR(255)
-  ContactAddress: NVARCHAR(110)
+  ContactAddress: NVARCHAR(255)
   ContactZip: NVARCHAR(255)
   DLState: NVARCHAR(255)
   DriverLicenseNumber: NVARCHAR(255)
