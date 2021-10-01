@@ -42,3 +42,24 @@ DecedentInformation:
   Race: NVARCHAR(MAX)
   OccupationTrade: NVARCHAR(255)
   KindOfBusinessIndustry: NVARCHAR(255)
+DecedentContacts:
+  CaseNum: NVARCHAR(255)
+  Id: INTEGER
+  ContactName: NVARCHAR(MAX)
+  NextOfKin: NVARCHAR(255)
+  Relationship: NVARCHAR(255)
+  ContactPhone: NVARCHAR(255)
+  ContactCellPhone: NVARCHAR(255)
+  ContactWorkPhone: NVARCHAR(255)
+  ContactAddress: NVARCHAR(255)
+  ContactZip: NVARCHAR(255)
+  DLState: NVARCHAR(255)
+  DriverLicenseNumber: NVARCHAR(255)
+  OccupationTrade: NVARCHAR(255)
+  Employer: NVARCHAR(255)
+  ContactGender: NVARCHAR(255)
+  BirthDate: DATE
+  Comments: NVARCHAR(MAX)
+  ContactRace: NVARCHAR(255)
+  Code: NVARCHAR(255)
+  AddressId: INTEGER
