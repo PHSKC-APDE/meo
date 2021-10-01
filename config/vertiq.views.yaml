@@ -45,7 +45,7 @@ DecedentInformation:
 DecedentContacts:
   CaseNum: NVARCHAR(255)
   Id: INTEGER
-  ContactName: NVARCHAR(MAX)
+  ContactName: NVARCHAR(255)
   NextOfKin: NVARCHAR(255)
   Relationship: NVARCHAR(255)
   ContactPhone: NVARCHAR(255)
@@ -58,7 +58,6 @@ DecedentContacts:
   OccupationTrade: NVARCHAR(255)
   Employer: NVARCHAR(255)
   ContactGender: NVARCHAR(255)
-  BirthDate: DATE
   Comments: NVARCHAR(255)
   ContactRace: NVARCHAR(255)
   Code: NVARCHAR(255)
