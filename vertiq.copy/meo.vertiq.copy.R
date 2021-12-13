@@ -18,10 +18,11 @@ msg <- c("<style> table, th, td { border: 1px solid black; padding: 0 10px; } </
 
 ### BEGIN MAIN SCRIPT
 assign("last.warning", NULL, envir = baseenv())
-config <- yaml::read_yaml("C:/Users/jwhitehurst/OneDrive - King County/GitHub/meo/config/vertiq.config.yaml")
-tables <- yaml::read_yaml("C:/Users/jwhitehurst/OneDrive - King County/GitHub/meo/config/vertiq.tables.yaml")
-views <- yaml::read_yaml("C:/Users/jwhitehurst/OneDrive - King County/GitHub/meo/config/vertiq.views.yaml")
+config <- yaml::yaml.load(httr::GET("https://raw.githubusercontent.com/PHSKC-APDE/meo/main/config/vertiq.config.yaml"))
+tables <- yaml::yaml.load(httr::GET("https://raw.githubusercontent.com/PHSKC-APDE/meo/main/config/vertiq.tables.yaml"))
+views <- yaml::yaml.load(httr::GET("https://raw.githubusercontent.com/PHSKC-APDE/meo/main/config/vertiq.views.yaml"))
 tables <- c(tables, views)
+log <- paste0(config$table_prefix, config$qa_table_copy)
 
 # VertiQ Connection
 connV <- DBI::dbConnect(odbc::odbc(),
@@ -54,15 +55,23 @@ for (i in 1:length(tables)) {
     to_table <- paste0(config$table_prefix, "v", from_table)
     qa[i,1] <- paste0("v", from_table)
   } else {
-    to_table <- paste0(config$table_prefix,from_table)
+    to_table <- paste0(config$table_prefix, from_table)
     qa[i,1] <- from_table
   }
   inc <- 10000
   
-  qa[i,2] <- DBI::dbGetQuery(connV, 
-                             glue::glue_sql("SELECT COUNT(*) AS cnt FROM 
-                                            {`from_table`}", 
-                                            .con = connV))
+  DBI::dbExecute(connA,
+                 glue::glue_sql("INSERT INTO {`config$to_schema`}.{`log`}
+                                (table_name, copy_start_datetime)
+                                VALUES ({to_table}, GETDATE())",
+                                .con = connA))
+  id <- DBI::dbGetQuery(connA,
+                        glue::glue_sql("SELECT TOP (1) id 
+                                       FROM {`config$to_schema`}.{`log`} 
+                                       WHERE table_name = {to_table}
+                                        AND copy_end_datetime IS NULL 
+                                       ORDER BY copy_start_datetime DESC", 
+                                       .con = connA))[1,1]
   
   select_vars <- tablevars$vars
   select_vars <- select_vars[order(unlist(select_vars), decreasing = F)]
@@ -96,7 +105,13 @@ for (i in 1:length(tables)) {
   
   data <- DBI::dbGetQuery(connV, select_query)
   data <- data[names(tablevars$vars)]
-
+  DBI::dbExecute(connA,
+                 glue::glue_sql("UPDATE {`config$to_schema`}.{`log`}
+                                SET rows_source = {nrow(data)} 
+                                WHERE id = {id}",
+                                .con = connA))
+  
+  
   ### Create new table
   d_stop <- as.integer(nrow(data) / inc)
   if (d_stop * inc < nrow(data)) { d_stop <- d_stop + 1 }
@@ -119,12 +134,32 @@ for (i in 1:length(tables)) {
                    overwrite = F, append = T)
     }
   }
-  qa[i,3] <- DBI::dbGetQuery(connA, 
-                             glue::glue_sql("SELECT COUNT(*) AS cnt FROM 
-                                            {`config$to_schema`}.{`to_table`}", 
-                                            .con = connA))
-  qa[i,4] <- qa[i,2] - qa[i,3]
+  rows <- DBI::dbGetQuery(connA, 
+                          glue::glue_sql("SELECT COUNT(*) AS cnt 
+                                         FROM {`config$to_schema`}.{`to_table`}",
+                                         .con = connA))[1,1]
+  DBI::dbExecute(connA,
+                 glue::glue_sql("UPDATE {`config$to_schema`}.{`log`}
+                                SET rows_loaded = {rows} ,
+                                 copy_end_datetime = GETDATE()
+                                WHERE id = {id}",
+                                .con = connA))
 }
+
+### CUSTOM CDIMMS VIEW ###
+to_table <- paste0(config$table_prefix, "vCDIMMS")
+DBI::dbExecute(connA,
+               glue::glue_sql("INSERT INTO {`config$to_schema`}.{`log`}
+                                (table_name, copy_start_datetime)
+                                VALUES ({to_table}, GETDATE())",
+                              .con = connA))
+id <- DBI::dbGetQuery(connA,
+                      glue::glue_sql("SELECT TOP (1) id 
+                                       FROM {`config$to_schema`}.{`log`} 
+                                       WHERE table_name = {to_table}
+                                        AND copy_end_datetime IS NULL 
+                                       ORDER BY copy_start_datetime DESC", 
+                                     .con = connA))[1,1]
 
 DBI::dbExecute(connA,
                glue::glue_sql("
@@ -154,7 +189,7 @@ DROP TABLE #Temp1;", .con = connA))
 
 DBI::dbExecute(connA,
                glue::glue_sql("
-DROP TABLE IF EXISTS {`config$to_schema`}.vertiq_vCDIMMS;
+DROP TABLE IF EXISTS {`config$to_schema`}.{`to_table`};
 
 SELECT
 C.Id AS 'CaseId'
@@ -235,24 +270,16 @@ LEFT JOIN meo.vertiq_Items IDPT ON DL.DeathPlaceTypeId = IDPT.Id
 LEFT JOIN meo.vertiq_Organizations ODPO ON DL.DeathPlaceOrganizationId = ODPO.Id;
 ", .con = connA))
 
-if(all(qa$difference == 0) == FALSE) {
-  msg <- c(msg, 
-           htmlTable(qa, rnames = F),
-           "<p>", format(Sys.time(), "%m/%d/%Y %X"), " - Import Script Complete</p>",
-           "<p>Warnings:</p>",
-           "<p>", warnings(), "</p>")
-  
-  email <- compose_email(
-    body = md(msg)
-  )
-  
-  email %>%
-    smtp_send(
-      to = "jwhitehurst@kingcounty.gov",
-      from = "jwhitehurst@kingcounty.gov",
-      subject = paste0("AUTOMATED: MEO VertiQ Copy QA! ", format(Sys.Date(), "%m/%d/%Y")),
-      credentials = creds_key("outlook")
-    )
-}
+rows <- DBI::dbGetQuery(connA, 
+                        glue::glue_sql("SELECT COUNT(*) AS cnt 
+                                         FROM {`config$to_schema`}.{`to_table`}",
+                                       .con = connA))[1,1]
+DBI::dbExecute(connA,
+               glue::glue_sql("UPDATE {`config$to_schema`}.{`log`}
+                                SET rows_source = {rows},
+                                 rows_loaded = {rows},
+                                 copy_end_datetime = GETDATE()
+                                WHERE id = {id}",
+                              .con = connA))
 
 rm(list = ls())

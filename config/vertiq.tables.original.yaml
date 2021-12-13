@@ -198,6 +198,7 @@ DeathCertificates:
   FirstTimeCauseCompleted: BIT
   DeathCertificateCODAmendedById: INTEGER
   CauseClearedWithVitalDateTime: DATETIME
+  NeedForAffidavitStatus: INTEGER
 DeathCertificateCauses:
   Id: INTEGER
   DeathCause: NVARCHAR(255)
