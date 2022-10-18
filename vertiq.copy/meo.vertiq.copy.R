@@ -15,15 +15,13 @@ suppressMessages(suppressWarnings(library(stringr)))
 suppressMessages(suppressWarnings(library(configr)))
 suppressMessages(suppressWarnings(devtools::source_url("https://raw.githubusercontent.com/PHSKC-APDE/apde/main/R/create_db_connection.R")))
 suppressMessages(suppressWarnings(devtools::source_url("https://raw.githubusercontent.com/PHSKC-APDE/apde/main/R/create_table.R")))
-source("C:/Users/jwhitehurst/OneDrive - King County/GitHub/meo/vertiq.copy/meo.vertiq.functions.R")
+suppressMessages(suppressWarnings(devtools::source_url("https://raw.githubusercontent.com/PHSKC-APDE/meo/main/vertiq.copy/meo.vertiq.functions.R")))
 
 msg <- c("<style> table, th, td { border: 1px solid black; padding: 0 10px; } </style>",
          "<p>", format(Sys.time(), "%m/%d/%Y %X"), " - Begin Import Script</p>")
 
 ### BEGIN MAIN SCRIPT
-#config <- yaml::yaml.load(httr::GET("https://raw.githubusercontent.com/PHSKC-APDE/meo/main/config/vertiq.config.yaml"))
-config <- suppressMessages(suppressWarnings(yaml::yaml.load_file("C:/Users/jwhitehurst/OneDrive - King County/GitHub/meo/vertiq.copy/vertiq.config.yaml")))
-
+config <- suppressMessages(suppressWarnings(yaml::yaml.load(httr::GET("https://raw.githubusercontent.com/PHSKC-APDE/meo/main/vertiq.copy/vertiq.config.yaml"))))
 
 # VertiQ Connection
 connV <- DBI::dbConnect(odbc::odbc(),
