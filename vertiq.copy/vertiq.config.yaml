@@ -1,0 +1,25 @@
+from_server: meo_vertiq
+from_server_address: cme2.database.windows.net
+from_db: KingProd
+to_server: hhsaw
+to_schema: meo
+audit_table_hours: 6
+audit_table_days: 30
+copy_inc: 10000
+table_list: zTableList
+copy_log: zCopyLog
+vars:
+  table_list:
+    from_schema: NVARCHAR(10)
+    from_table: NVARCHAR(100)
+    from_rows: INTEGER
+    to_schema: NVARCHAR(10)
+    to_table: NVARCHAR(100)
+    to_rows: INTEGER
+    audit_table: BIT
+    audit_column: NVARCHAR(100)
+    last_update_datetime: DATETIME
+  copy_log:
+    table_name: NVARCHAR(100)
+    copy_rows: INTEGER
+    copy_datetime: DATETIME
