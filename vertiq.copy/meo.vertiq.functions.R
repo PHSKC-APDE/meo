@@ -397,7 +397,7 @@ copy_log_entry_f <- function(conn,
                  glue_sql("INSERT INTO [meo].[zCopyLog]
                           (table_name, copy_rows, copy_datetime)                           
                           VALUES
-                          ({table_name}, {copy_rows}, {Sys.time()})",
+                          ({table_name}, {copy_rows}, {format(Sys.time(), format='%Y-%m-%d %H:%M:%S')})",
                           .con = conn))
 }
 
@@ -421,7 +421,7 @@ update_table_list_f <- function(conn,
                                 copy_rows) {
   DBI::dbExecute(conn,
                  glue_sql("UPDATE [meo].[zTableList]
-                          SET {`column_name`} = {value}, [last_update_datetime] = {Sys.time()}
+                          SET {`column_name`} = {format(value, format='%Y-%m-%d %H:%M:%S')}, [last_update_datetime] = {format(Sys.time(), format='%Y-%m-%d %H:%M:%S')}
                           WHERE [to_table] = {to_table}",
                           .con = conn))
 }
