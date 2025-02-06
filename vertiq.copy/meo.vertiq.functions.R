@@ -409,7 +409,7 @@ get_last_copy_f <- function(conn,
                           WHERE table_name = {table_name} AND copy_rows > 0",
                           .con = conn))
   if(nrow(last_copy) > 0) {
-    return(last_copy[1,1])
+    return(toString(last_copy[1,1]))
   }
   return(0)
 }
