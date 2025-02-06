@@ -22,7 +22,7 @@ msg <- c("<style> table, th, td { border: 1px solid black; padding: 0 10px; } </
 
 ### BEGIN MAIN SCRIPT
 config <- suppressMessages(suppressWarnings(yaml::yaml.load(httr::GET("https://raw.githubusercontent.com/PHSKC-APDE/meo/main/vertiq.copy/vertiq.config.yaml"))))
-
+options(scipen = 999)
 # VertiQ Connection
 connV <- DBI::dbConnect(odbc::odbc(),
                         driver = "ODBC Driver 17 for SQL Server",
@@ -211,6 +211,7 @@ repeat {
   }
 }
 
+options(scipen = 0)
 message(glue("[{Sys.time()}] Script Completed: {round(difftime(Sys.time(), script_time, units = 'mins'), 1)} minutes"))
 
 rm(list = ls())
