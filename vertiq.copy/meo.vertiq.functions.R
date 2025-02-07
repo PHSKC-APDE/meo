@@ -212,13 +212,17 @@ copy_data_f <- function(from_conn,
     }
     
     # Delete any data in the to_table that has been updated before loading new data
-    rows_delete <- DBI::dbExecute(to_conn,
+    if(nrow(ids) > 0) {
+        rows_delete <- DBI::dbExecute(to_conn,
                                   glue_sql("DELETE FROM {`to_schema`}.{`to_table`}
                             WHERE {`updated_var`} IN({DBI::SQL(glue::glue_collapse(glue_sql('{ids[, 1]}', .con = to_conn), sep = ', '))})",
                                            .con = to_conn))
     select_query <- paste0(select_query,     
                            glue_sql(" WHERE {`updated_var`} IN({DBI::SQL(glue::glue_collapse(glue_sql('{ids[, 1]}', .con = from_conn), sep = ', '))})",
                                     .con = from_conn))
+    } else {
+      rows_delete <- 0
+    }
     # Add copy log entry for deleted rows and update table list to_rows
     if(rows_delete > 0) { 
       message(glue("[{Sys.time()}] {table$to_table} - Deleting Rows: {rows_delete}"))
